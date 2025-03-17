@@ -1,0 +1,59 @@
+# Python 编译文件
+*.py[cod]
+*$py.class
+
+# 缓存文件
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# dotenv 文件（环境变量文件）
+.env
+.env.*   
+
+# Pytest
+.cache/
+
+# 编辑器或IDE相关
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db 
+
+node_modules/
+
+# 临时文件
+*.tmp
+*.tmp.*
+*.tmp.*.*

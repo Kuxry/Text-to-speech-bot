@@ -5,24 +5,30 @@ import { SoundOutlined } from '@ant-design/icons';
 import ReactPlayer from 'react-player';
 import { API_CONFIG } from '../config';
 import ApiConfig from './ApiConfig';
+import ApiConfigModal from './ApiConfigModal';
 
 export default function TTSForm() {
   const [text, setText] = useState('');
   const [speed, setSpeed] = useState(1.0);
   const [pitch, setPitch] = useState(1.0);
-  const [voice, setVoice] = useState('en-US-AriaNeural');
+  const [voice, setVoice] = useState('en-US-JennyNeural');
   const [audioUrl, setAudioUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const controllerRef = useRef(null);
   const [configVisible, setConfigVisible] = useState(false);
+  const [apiConfig, setApiConfig] = useState(
+    JSON.parse(localStorage.getItem('azureConfig') || '{}')
+  );
+  const [error, setError] = useState(null);
 
-  const voices = [
-    { value: 'en-US-AriaNeural', label: 'Aria (English)' },
-    { value: 'zh-CN-XiaoxiaoNeural', label: '晓晓 (中文)' },
+  const VOICE_OPTIONS = [
+    { value: 'en-US-JennyNeural', label: 'Jenny (English US)' },
+    { value: 'zh-CN-XiaoxiaoNeural', label: '晓晓 (中文普通话)' },
     { value: 'ja-JP-NanamiNeural', label: '七海 (日本語)' },
   ];
 
   const generateSpeech = async () => {
+    setError(null);
     if (!text.trim()) {
       message.warning('请输入要转换的文本');
       return;
@@ -30,54 +36,45 @@ export default function TTSForm() {
 
     setLoading(true);
     try {
-      // 取消之前的请求
-      if (controllerRef.current) {
-        controllerRef.current.abort();
-      }
-      controllerRef.current = new AbortController();
-
-      const response = await axios.post('/api/generate', {
-        text: text.trim(),
-        voice,
-        speed,
-        pitch,
-        api_key: localStorage.getItem('azureKey') || '',
-        region: localStorage.getItem('azureRegion') || 'eastus'
+      const response = await axios.post('http://localhost:8000/api/generate', {
+        text: text,
+        voice: voice,
+        azure_key: apiConfig.azureKey,
+        azure_region: apiConfig.azureRegion || 'japaneast'
       }, {
-        responseType: 'blob',
-        signal: controllerRef.current.signal,
-        timeout: API_CONFIG.TIMEOUT
+        responseType: 'arraybuffer',  // 确保二进制数据接收
+        headers: {
+          'Content-Type': 'application/json'  // 明确指定请求头
+        }
       });
       
-      const url = URL.createObjectURL(new Blob([response.data]));
-      setAudioUrl(url);
+      // 创建Blob时明确指定MIME类型
+      const audioBlob = new Blob([response.data], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setAudioUrl(audioUrl);
       message.success('生成成功');
     } catch (error) {
-      if (error.response) {
-        switch(error.response.status) {
-          case 400:
-            message.error('请求参数错误：' + error.response.data.detail);
-            break;
-          case 403:
-            message.error('API密钥无效或配额不足');
-            break;
-          case 500:
-            message.error('服务器处理失败，请检查控制台');
-            break;
-          default:
-            message.error(`请求失败：${error.message}`);
-        }
-      } else {
-        message.error('网络连接失败，请检查API地址');
-      }
+      console.error('API请求错误:', error);
+      setError('生成失败，请检查配置');
     } finally {
       setLoading(false);
-      controllerRef.current = null;
     }
+  };
+
+  const handleSaveConfig = (values) => {
+    localStorage.setItem('azureConfig', JSON.stringify(values));
+    setApiConfig(values);
   };
 
   return (
     <div className="tts-container">
+      {error && (
+        <div className="error-message">
+          ❌ {error}
+          <button onClick={() => setError(null)}>关闭</button>
+        </div>
+      )}
+
       <Button 
         style={{ position: 'absolute', top: 20, right: 20 }}
         onClick={() => setConfigVisible(true)}
@@ -85,9 +82,10 @@ export default function TTSForm() {
         API 配置
       </Button>
 
-      <ApiConfig 
+      <ApiConfigModal
         visible={configVisible}
-        onClose={() => setConfigVisible(false)}
+        onCancel={() => setConfigVisible(false)}
+        onSave={handleSaveConfig}
       />
 
       <h1>文本转语音系统</h1>
@@ -130,7 +128,7 @@ export default function TTSForm() {
         <div className="param-control">
           <label>发音人:</label>
           <Select
-            options={voices}
+            options={VOICE_OPTIONS}
             value={voice}
             onChange={setVoice}
             style={{ width: 200 }}
