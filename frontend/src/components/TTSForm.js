@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { Slider, Button, Select, message } from 'antd';
-import { SoundOutlined } from '@ant-design/icons';
+import { SoundOutlined, StarFilled, SearchOutlined } from '@ant-design/icons';
 import ReactPlayer from 'react-player';
 import { API_CONFIG } from '../config';
 import ApiConfig from './ApiConfig';
@@ -22,9 +22,41 @@ export default function TTSForm() {
   const [error, setError] = useState(null);
 
   const VOICE_OPTIONS = [
-    { value: 'en-US-JennyNeural', label: 'Jenny (English US)' },
-    { value: 'zh-CN-XiaoxiaoNeural', label: '晓晓 (中文普通话)' },
-    { value: 'ja-JP-NanamiNeural', label: '七海 (日本語)' },
+    {
+      category: '中文（高级神经语音）',
+      pro: true,
+      options: [
+        { value: 'zh-CN-XiaoxiaoNeural', label: '晓晓 - 年轻女性（多情感）' },
+        { value: 'zh-CN-YunyangNeural', label: '云扬 - 新闻播报（专业）' },
+        { value: 'zh-CN-YunxiNeural', label: '云希 - 青年男性（风格多变）' },
+      ]
+    },
+    {
+      category: '中文（标准语音）',
+      pro: false,
+      options: [
+        { value: 'zh-CN-HuihuiRUS', label: '慧慧 - 普通女声' },
+        { value: 'zh-CN-Kangkang', label: '康康 - 普通男声' },
+        { value: 'zh-CN-Yaoyao', label: '瑶瑶 - 儿童女声' },
+      ]
+    },
+    {
+      category: '英语（高级神经语音）',
+      pro: true,
+      options: [
+        { value: 'en-US-JennyNeural', label: 'Jenny - 多情感女声' },
+        { value: 'en-US-GuyNeural', label: 'Guy - 新闻男声' },
+        { value: 'en-US-AriaNeural', label: 'Aria - 自然对话' },
+      ]
+    },
+    {
+      category: '日语（高级神经语音）',
+      pro: true,
+      options: [
+        { value: 'ja-JP-NanamiNeural', label: '七海 - 女性（情感丰富）' },
+        { value: 'ja-JP-KeitaNeural', label: '庆太 - 男性（专业）' },
+      ]
+    }
   ];
 
   const generateSpeech = async () => {
@@ -128,10 +160,41 @@ export default function TTSForm() {
         <div className="param-control">
           <label>发音人:</label>
           <Select
-            options={VOICE_OPTIONS}
+            showSearch
+            optionFilterProp="children"
+            style={{ width: '100%', maxWidth: 500 }}
+            dropdownStyle={{ maxWidth: 600 }}
+            dropdownMatchSelectWidth={false}
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+            options={VOICE_OPTIONS.map(group => ({
+              label: (
+                <div className="voice-category">
+                  <span>{group.category}</span>
+                  {group.pro && <span className="pro-badge">PRO</span>}
+                </div>
+              ),
+              options: group.options.map(opt => ({
+                ...opt,
+                label: (
+                  <div className="voice-option">
+                    <span>{opt.label}</span>
+                    {group.pro && <StarFilled style={{ color: '#ffc53d', marginLeft: 8 }} />}
+                  </div>
+                )
+              }))
+            }))}
             value={voice}
             onChange={setVoice}
-            style={{ width: 200 }}
+            dropdownRender={menu => (
+              <div>
+                <div style={{ padding: '8px 12px', background: '#fafafa' }}>
+                  <SearchOutlined /> 支持中/英/日语音搜索
+                </div>
+                {menu}
+              </div>
+            )}
           />
         </div>
       </div>
