@@ -41,8 +41,8 @@ export default function TTSForm() {
         voice,
         speed,
         pitch,
-        api_key: localStorage.getItem('azureKey'),
-        region: localStorage.getItem('azureRegion')
+        api_key: localStorage.getItem('azureKey') || '',
+        region: localStorage.getItem('azureRegion') || 'eastus'
       }, {
         responseType: 'blob',
         signal: controllerRef.current.signal,
@@ -53,8 +53,22 @@ export default function TTSForm() {
       setAudioUrl(url);
       message.success('生成成功');
     } catch (error) {
-      if (error.response?.status === 403) {
-        message.error('API密钥无效，请检查配置');
+      if (error.response) {
+        switch(error.response.status) {
+          case 400:
+            message.error('请求参数错误：' + error.response.data.detail);
+            break;
+          case 403:
+            message.error('API密钥无效或配额不足');
+            break;
+          case 500:
+            message.error('服务器处理失败，请检查控制台');
+            break;
+          default:
+            message.error(`请求失败：${error.message}`);
+        }
+      } else {
+        message.error('网络连接失败，请检查API地址');
       }
     } finally {
       setLoading(false);

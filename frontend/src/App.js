@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, ConfigProvider } from 'antd';
 import TTSForm from './components/TTSForm';
-import 'antd/dist/antd.css';
+import 'antd/dist/reset.css';
 
 const { Header, Content } = Layout;
 
