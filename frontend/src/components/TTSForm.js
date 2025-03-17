@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Slider, Button, Select, Alert } from 'antd';
+import { Slider, Button, Select, message } from 'antd';
+import { SoundOutlined } from '@ant-design/icons';
 import ReactPlayer from 'react-player';
 
 export default function TTSForm() {
@@ -32,7 +33,7 @@ export default function TTSForm() {
       const url = URL.createObjectURL(new Blob([response.data]));
       setAudioUrl(url);
     } catch (error) {
-      Alert.error('生成失败: ' + error.message);
+      message.error('生成失败: ' + error.message);
     }
     setLoading(false);
   };
