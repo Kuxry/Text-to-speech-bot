@@ -1,0 +1,24 @@
+services:
+  tts-api:
+    image: tts-service:v1.2
+    environment:
+      - AZURE_KEY=${AZURE_KEY}
+      - ELEVENLABS_KEY=${ELEVEN_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+
+  worker:
+    image: tts-worker:v1.1
+    command: celery -A tasks worker --loglevel=info
+    environment:
+      - BROKER_URL=amqp://rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management 
