@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { Slider, Button, Select, message } from 'antd';
 import { SoundOutlined } from '@ant-design/icons';
 import ReactPlayer from 'react-player';
+import { API_CONFIG } from '../config';
+import ApiConfig from './ApiConfig';
 
 export default function TTSForm() {
   const [text, setText] = useState('');
@@ -11,6 +13,8 @@ export default function TTSForm() {
   const [voice, setVoice] = useState('en-US-AriaNeural');
   const [audioUrl, setAudioUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const controllerRef = useRef(null);
+  const [configVisible, setConfigVisible] = useState(false);
 
   const voices = [
     { value: 'en-US-AriaNeural', label: 'Aria (English)' },
@@ -19,27 +23,59 @@ export default function TTSForm() {
   ];
 
   const generateSpeech = async () => {
+    if (!text.trim()) {
+      message.warning('请输入要转换的文本');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8000/generate', {
-        text,
+      // 取消之前的请求
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+      controllerRef.current = new AbortController();
+
+      const response = await axios.post('/api/generate', {
+        text: text.trim(),
         voice,
-        speed: speed.toFixed(1),
-        pitch: pitch.toFixed(1)
+        speed,
+        pitch,
+        api_key: localStorage.getItem('azureKey'),
+        region: localStorage.getItem('azureRegion')
       }, {
-        responseType: 'blob'
+        responseType: 'blob',
+        signal: controllerRef.current.signal,
+        timeout: API_CONFIG.TIMEOUT
       });
       
       const url = URL.createObjectURL(new Blob([response.data]));
       setAudioUrl(url);
+      message.success('生成成功');
     } catch (error) {
-      message.error('生成失败: ' + error.message);
+      if (error.response?.status === 403) {
+        message.error('API密钥无效，请检查配置');
+      }
+    } finally {
+      setLoading(false);
+      controllerRef.current = null;
     }
-    setLoading(false);
   };
 
   return (
     <div className="tts-container">
+      <Button 
+        style={{ position: 'absolute', top: 20, right: 20 }}
+        onClick={() => setConfigVisible(true)}
+      >
+        API 配置
+      </Button>
+
+      <ApiConfig 
+        visible={configVisible}
+        onClose={() => setConfigVisible(false)}
+      />
+
       <h1>文本转语音系统</h1>
       
       <div className="input-section">
@@ -91,10 +127,9 @@ export default function TTSForm() {
       <Button 
         type="primary" 
         onClick={generateSpeech}
-        loading={loading}
-        disabled={!text.trim()}
+        disabled={loading || !text.trim()}
       >
-        生成语音
+        {loading ? '生成中...' : '开始生成'}
       </Button>
 
       {audioUrl && (
