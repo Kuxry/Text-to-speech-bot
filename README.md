@@ -108,7 +108,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ---
 
-📧 **Contact**: [your.email@example.com](mailto:your.email@example.com)  
-🐛 [Report Issue](https://github.com/yourusername/text-to-speech-bot/issues)
+🐛 [Report Issue](https://github.com/Kuxry/text-to-speech-bot/issues)
 
 
