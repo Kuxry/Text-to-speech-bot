@@ -1,10 +1,11 @@
-# 🎤 TTS Gateway - Multi-Platform Text-to-Speech Orchestration
+# 🎤 TTS Gateway - Multi-Platform Text-to-Speech 
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18.2.0-blue)](https://react.dev)
 [![Azure-TTS](https://img.shields.io/badge/Azure%20TTS-3.30.0-blueviolet)](https://azure.microsoft.com/en-us/products/cognitive-services/text-to-speech)
 
-A unified gateway for cloud-based text-to-speech services with intelligent routing and enterprise-grade features.
+Intelligent multi-cloud orchestration platform for text-to-speech services with automatic routing and enterprise-grade management.
+
 
 ## ✨ Core Features
 
